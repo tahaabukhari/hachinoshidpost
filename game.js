@@ -1,7 +1,7 @@
 let game;
 
 function createGame() {
-  game = new Phaser.Game({
+  const config = {
     type: Phaser.AUTO,
     parent: 'game',
     width: 600,
@@ -11,10 +11,16 @@ function createGame() {
       default: 'matter',
       matter: {
         gravity: { y: 1 },
-        debug: false, 
+        debug: false,
       },
     },
-  });
+    scale: {
+      mode: Phaser.Scale.FIT,
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+    },
+  };
+
+  game = new Phaser.Game(config);
 }
 
 class StartMenu extends Phaser.Scene {
@@ -38,7 +44,7 @@ class StartMenu extends Phaser.Scene {
     }).setOrigin(0.5);
 
     let startButton = this.add.sprite(width / 2, height / 2 + 50, 'start-button').setInteractive();
-    startButton.setDisplaySize(250, 150); // Adjust the size of the start button
+    startButton.setDisplaySize(250, 150);
     startButton.on('pointerdown', () => {
       this.scene.start('MyScene');
     });
@@ -85,31 +91,27 @@ class MyScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale.gameSize;
 
-    // Background
     this.background = this.add.tileSprite(0, 0, width, height, 'background').setOrigin(0);
 
-    // Platform
     this.platform = this.matter.add.sprite(width / 2, height - 50, 'platform', null, {
       isStatic: true,
       chamfer: 10,
-    }).setDisplaySize(width, 150);  // Adjusted to reduce height by 25%
+    }).setDisplaySize(width, 150);  
 
     this.platform.setPosition(width / 2, height - this.platform.displayHeight / 2);
 
-    // Player
     this.player = this.matter.add.sprite(width / 2, height - 150, 'player', null, {
       restitution: 0.1,
       friction: 0.2,
       frictionAir: 0.1,
       density: 0.5,
-    }).setCircle(20); // Revert to circular hitbox
+    }).setCircle(20);
 
     this.player.setScale(0.1);
     this.player.setFixedRotation();
     this.player.setBounce(0.1);
     this.player.setPosition(width / 2, this.platform.y - this.platform.displayHeight / 2 - this.player.displayHeight / 2);
 
-    // Score
     this.scoreText = this.add.text(10, 10, 'SCORE: 0', {
       fontSize: '32px',
       fill: '#ffffff',
@@ -120,7 +122,6 @@ class MyScene extends Phaser.Scene {
 
     this.gameOver = false;
 
-    // Obstacles
     this.time.addEvent({
       delay: 1300,
       callback: this.generateObstacle,
@@ -128,7 +129,6 @@ class MyScene extends Phaser.Scene {
       loop: true,
     });
 
-    // Flying Obstacles
     this.time.addEvent({
       delay: 10000,
       callback: this.generateFlyingObstacle,
@@ -136,16 +136,14 @@ class MyScene extends Phaser.Scene {
       loop: true,
     });
 
-    // Jump Button
     let jumpButton = this.add.sprite(80, height - 85, 'jump-button').setInteractive();
-    jumpButton.setDisplaySize(150, 100); // Adjust the size of the jump button
+    jumpButton.setDisplaySize(150, 100); 
     jumpButton.on('pointerdown', () => {
       if (this.isPlayerGrounded) {
-        this.player.setVelocityY(-10); // Adjust jump strength
+        this.player.setVelocityY(-10);
       }
     });
 
-    // Collision detection
     this.matter.world.on('collisionstart', (event) => {
       const pairs = event.pairs;
       pairs.forEach(pair => {
@@ -166,7 +164,6 @@ class MyScene extends Phaser.Scene {
       });
     });
 
-    // Collision detection
     this.matter.world.on('collisionstart', (event) => {
       const pairs = event.pairs;
       pairs.forEach(pair => {
@@ -176,7 +173,6 @@ class MyScene extends Phaser.Scene {
           this.isPlayerGrounded = true;
         } else if (otherBody.label === 'flyingchaahat') {
           this.sound.play('die');
-          // Handle flying obstacle collision
         } else if (otherBody.label === 'obstacle') {
           this.gameOver = true;
           this.showGameOverScreen();
@@ -184,9 +180,8 @@ class MyScene extends Phaser.Scene {
       });
     });
     
-    // Restart Button
     this.restartButton = this.add.sprite(width / 2, height / 2 + 100, 'restart-button').setInteractive().setVisible(false);
-    this.restartButton.setDisplaySize(150, 100); // Adjust the size of the restart button
+    this.restartButton.setDisplaySize(150, 100);
     this.restartButton.on('pointerdown', () => {
       this.restartGame();
     });
@@ -236,7 +231,6 @@ class MyScene extends Phaser.Scene {
 
     if (this.gameOver) return;
 
-    // Scroll background
     this.background.tilePositionX += 2;
 
     this.obstacles = this.obstacles.filter(obstacle => {
@@ -249,10 +243,9 @@ class MyScene extends Phaser.Scene {
         return false;
       }
 
-      // Check if the obstacle has passed the left edge of the screen and increase score
       if (!obstacle.hasScored && obstacle.x < 0) {
         this.updateScore();
-        obstacle.hasScored = true; // Ensure we only score once per obstacle
+        obstacle.hasScored = true;
       }
 
       return true;
@@ -268,10 +261,9 @@ class MyScene extends Phaser.Scene {
         return false;
       }
 
-      // Check if the flying obstacle has passed the left edge of the screen and increase score
       if (!flyingObstacle.hasScored && flyingObstacle.x < 0) {
         this.updateScore();
-        flyingObstacle.hasScored = true; // Ensure we only score once per obstacle
+        flyingObstacle.hasScored = true; 
       }
 
       return true;
@@ -282,18 +274,15 @@ class MyScene extends Phaser.Scene {
       this.showGameOverScreen();
     }
 
-    // End game if player falls off the platform
     if (this.player.y > height) {
       this.gameOver = true;
       this.showGameOverScreen();
     }
 
-    // Update grounded state
     if (this.player && Math.abs(this.player.body.velocity.y) > 0.1) {
       this.isPlayerGrounded = false;
     }
 
-    // Bounds checking for player
     this.player.body.position.x = Phaser.Math.Clamp(this.player.body.position.x, 0, width);
     this.player.body.position.y = Phaser.Math.Clamp(this.player.body.position.y, 0, height);
   }
