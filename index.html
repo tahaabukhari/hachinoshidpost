@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>tahaaaaaawebgameone</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      background: black; /* Black background to match game background */
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden; /* Ensure no scrollbars appear */
+    }
+    #game-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    #ads-container {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      background-color: #fff;
+      padding: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="game"></div>
+  </div>
+  <div id="ads-container">
+    <!-- Google AdSense code -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({
+        google_ad_client: "ca-pub-9343960883915686", // Replace with your AdSense client ID
+        enable_page_level_ads: true
+      });
+    </script>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
