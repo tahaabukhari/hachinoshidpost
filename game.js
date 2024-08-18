@@ -173,6 +173,8 @@ class MyScene extends Phaser.Scene {
           this.isPlayerGrounded = true;
         } else if (otherBody.label === 'flyingchaahat') {
           this.sound.play('die');
+          this.gameOver = true;
+          this.showGameOverScreen();
         } else if (otherBody.label === 'obstacle') {
           this.gameOver = true;
           this.showGameOverScreen();
