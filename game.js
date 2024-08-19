@@ -36,8 +36,9 @@ class StartMenu extends Phaser.Scene {
   create() {
     const { width, height } = this.scale.gameSize;
 
-    this.add.image(width / 2, height / 2 - 100, 'header');
-    this.add.text(width / 2, height / 2 - 50, 'untitledgame game', {
+    let header = this.add.image(width / 3, height / 2, 'header');
+    header.setAlpha(0.3);
+    this.add.text(width / 2, height / 2 - 50, 'hachinoshidpost', {
       fontSize: '64px',
       fill: '#ffffff',
       fontFamily: 'Arial',
@@ -49,7 +50,7 @@ class StartMenu extends Phaser.Scene {
       this.scene.start('MyScene');
     });
 
-    this.add.text(width / 2, height / 2 + 100, 'creator: tahaa❔❔❔', {
+    this.add.text(width / 2, height / 2 + 100, 'creator: tahaaa❔❔', {
       fontSize: '24px',
       fill: '#ffffff',
       fontFamily: 'Arial',
@@ -86,6 +87,7 @@ class MyScene extends Phaser.Scene {
     this.load.audio('deathsound', 'deathsound.mp3');
     this.load.audio('jump-up', 'jump-up.mp3');
     this.load.audio('die', 'die.mp3');
+    this.load.audio('jump', 'jump.mp3');
   }
 
   create() {
@@ -123,14 +125,23 @@ class MyScene extends Phaser.Scene {
     this.gameOver = false;
 
     this.time.addEvent({
-      delay: 1300,
-      callback: this.generateObstacle,
-      callbackScope: this,
-      loop: true,
+        delay: 3000,
+        callback: () => {
+            const newSpawnDelay = this.generateObstacle();
+            this.time.addEvent({
+                delay: newSpawnDelay,
+                callback: this.generateObstacle,
+                callbackScope: this,
+                loop: false,
+            });
+        },
+        callbackScope: this,
+        loop: true,
     });
 
+    let randomdelay = Phaser.Math.Between(15000, 30000);
     this.time.addEvent({
-      delay: 10000,
+      delay: randomdelay,
       callback: this.generateFlyingObstacle,
       callbackScope: this,
       loop: true,
@@ -140,6 +151,7 @@ class MyScene extends Phaser.Scene {
     jumpButton.setDisplaySize(150, 100); 
     jumpButton.on('pointerdown', () => {
       if (this.isPlayerGrounded) {
+        this.sound.play('jump');
         this.player.setVelocityY(-10);
       }
     });
@@ -173,11 +185,11 @@ class MyScene extends Phaser.Scene {
           this.isPlayerGrounded = true;
         } else if (otherBody.label === 'flyingchaahat') {
           this.sound.play('die');
+          this.player.setVelocityY(-10);
           this.gameOver = true;
           this.showGameOverScreen();
         } else if (otherBody.label === 'obstacle') {
-          this.gameOver = true;
-          this.showGameOverScreen();
+          this.player.setVelocityY(-10);
         }
       });
     });
@@ -196,18 +208,37 @@ class MyScene extends Phaser.Scene {
   }
 
   generateObstacle() {
-    if (this.gameOver) return;
+      if (this.gameOver) return;
 
-    const { width, height } = this.scale.gameSize;
-    const obstacle = this.matter.add.sprite(width, height - 200, 'obstacle', null, {
-      label: 'obstacle',
-    });
-    obstacle.setRectangle(40, 40, { density: 0.1, friction: 0, restitution: 0.5 });
-    obstacle.setScale(0.1);
+      const { width, height } = this.scale.gameSize;
+      const obstacle = this.matter.add.sprite(width, height - 160, 'obstacle', null, {
+          label: 'obstacle',
+          friction: 0,
+      });
 
-    const randomSpeed = Phaser.Math.Between(5, 20);
-    this.matter.body.setVelocity(obstacle.body, { x: -randomSpeed, y: 0 });
-    this.obstacles.push(obstacle);
+      obstacle.setRectangle(40, 40, { density: 0.1, friction: 0, restitution: 0.5 });
+      obstacle.setScale(0.1);
+
+      let baseSpeed = 5;
+      let baseDelay = 3000;
+
+      if (this.score > 30) {
+          baseSpeed = 20;
+          baseDelay = 500;
+      } else if (this.score > 5) {
+          baseSpeed = 10;
+          baseDelay = 1000;
+      } else {
+          baseSpeed = 5;
+          baseDelay = 3000;
+      }
+
+      const randomSpeed = Phaser.Math.Between(baseSpeed, baseSpeed + 5);
+      obstacle.setVelocityX(-randomSpeed);
+      this.obstacles.push(obstacle);
+
+      const spawnDelay = Phaser.Math.Between(baseDelay, baseDelay + 1000);
+      return spawnDelay;
   }
 
   generateFlyingObstacle() {
