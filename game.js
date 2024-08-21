@@ -95,10 +95,11 @@ class MyScene extends Phaser.Scene {
 
     this.background = this.add.tileSprite(0, 0, width, height, 'background').setOrigin(0);
 
-    this.platform = this.matter.add.sprite(width / 2, height - 50, 'platform', null, {
+    this.platform = this.add.tileSprite(width / 2, height - 50, width, 150, 'platform');
+    this.matter.add.gameObject(this.platform, {
       isStatic: true,
       chamfer: 10,
-    }).setDisplaySize(width, 150);  
+    });
 
     this.platform.setPosition(width / 2, height - this.platform.displayHeight / 2);
 
@@ -124,19 +125,11 @@ class MyScene extends Phaser.Scene {
 
     this.gameOver = false;
 
-    this.time.addEvent({
-        delay: 3000,
-        callback: () => {
-            const newSpawnDelay = this.generateObstacle();
-            this.time.addEvent({
-                delay: newSpawnDelay,
-                callback: this.generateObstacle,
-                callbackScope: this,
-                loop: false,
-            });
-        },
-        callbackScope: this,
-        loop: true,
+    this.obstacleTimer = this.time.addEvent({
+      delay: 3000,
+      callback: this.generateObstacle,
+      callbackScope: this,
+      loop: true,
     });
 
     let randomdelay = Phaser.Math.Between(15000, 30000);
@@ -148,32 +141,12 @@ class MyScene extends Phaser.Scene {
     });
 
     let jumpButton = this.add.sprite(80, height - 85, 'jump-button').setInteractive();
-    jumpButton.setDisplaySize(150, 100); 
+    jumpButton.setDisplaySize(150, 100);
     jumpButton.on('pointerdown', () => {
       if (this.isPlayerGrounded) {
         this.sound.play('jump');
         this.player.setVelocityY(-10);
       }
-    });
-
-    this.matter.world.on('collisionstart', (event) => {
-      const pairs = event.pairs;
-      pairs.forEach(pair => {
-        const otherBody = pair.bodyA === this.player.body ? pair.bodyB : pair.bodyA;
-        if (otherBody === this.platform.body) {
-          this.isPlayerGrounded = true;
-        }
-      });
-    });
-
-    this.matter.world.on('collisionend', (event) => {
-      const pairs = event.pairs;
-      pairs.forEach(pair => {
-        const otherBody = pair.bodyA === this.player.body ? pair.bodyB : pair.bodyA;
-        if (otherBody === this.platform.body) {
-          this.isPlayerGrounded = false;
-        }
-      });
     });
 
     this.matter.world.on('collisionstart', (event) => {
@@ -193,7 +166,17 @@ class MyScene extends Phaser.Scene {
         }
       });
     });
-    
+
+    this.matter.world.on('collisionend', (event) => {
+      const pairs = event.pairs;
+      pairs.forEach(pair => {
+        const otherBody = pair.bodyA === this.player.body ? pair.bodyB : pair.bodyA;
+        if (otherBody === this.platform.body) {
+          this.isPlayerGrounded = false;
+        }
+      });
+    });
+
     this.restartButton = this.add.sprite(width / 2, height / 2 + 100, 'restart-button').setInteractive().setVisible(false);
     this.restartButton.setDisplaySize(150, 100);
     this.restartButton.on('pointerdown', () => {
@@ -208,37 +191,36 @@ class MyScene extends Phaser.Scene {
   }
 
   generateObstacle() {
-      if (this.gameOver) return;
+    if (this.gameOver) return;
 
-      const { width, height } = this.scale.gameSize;
-      const obstacle = this.matter.add.sprite(width, height - 160, 'obstacle', null, {
-          label: 'obstacle',
-          friction: 0,
-      });
+    const { width, height } = this.scale.gameSize;
+    const obstacle = this.matter.add.sprite(width, height - 160, 'obstacle', null, {
+      label: 'obstacle',
+      friction: 0,
+    });
 
-      obstacle.setRectangle(40, 40, { density: 0.1, friction: 0, restitution: 0.5 });
-      obstacle.setScale(0.1);
+    obstacle.setRectangle(40, 40, { density: 0.1, friction: 0, restitution: 0.5 });
+    obstacle.setScale(0.1);
 
-      let baseSpeed = 5;
-      let baseDelay = 3000;
+    let baseSpeed = 5;
+    let baseDelay = 3000;
 
-      if (this.score > 30) {
-          baseSpeed = 20;
-          baseDelay = 500;
-      } else if (this.score > 5) {
-          baseSpeed = 10;
-          baseDelay = 1000;
-      } else {
-          baseSpeed = 5;
-          baseDelay = 3000;
-      }
+    if (this.score > 30) {
+      baseSpeed = 20;
+      baseDelay = 1000;
+    } else if (this.score > 10) {
+      baseSpeed = 10;
+      baseDelay = 2000;
+    } else if (this.score > 5) {
+      baseSpeed = 8;
+      baseDelay = 2500;
+    }
 
-      const randomSpeed = Phaser.Math.Between(baseSpeed, baseSpeed + 5);
-      obstacle.setVelocityX(-randomSpeed);
-      this.obstacles.push(obstacle);
+    const randomSpeed = Phaser.Math.Between(baseSpeed, baseSpeed + 5);
+    obstacle.setVelocityX(-randomSpeed);
+    this.obstacles.push(obstacle);
 
-      const spawnDelay = Phaser.Math.Between(baseDelay, baseDelay + 1000);
-      return spawnDelay;
+    this.obstacleTimer.delay = baseDelay;
   }
 
   generateFlyingObstacle() {
@@ -248,7 +230,7 @@ class MyScene extends Phaser.Scene {
     const flyingObstacle = this.matter.add.sprite(width, height - 300, 'flyingchaahat', null, {
       isStatic: false,
       friction: 0,
-      label: 'flyingchaahat'
+      label: 'flyingchaahat',
     });
 
     flyingObstacle.setScale(0.4);
@@ -264,8 +246,9 @@ class MyScene extends Phaser.Scene {
 
     if (this.gameOver) return;
 
-    this.background.tilePositionX += 2;
-
+    this.background.tilePositionX += 0.5;
+    this.platform.tilePositionX += 6;
+    
     this.obstacles = this.obstacles.filter(obstacle => {
       obstacle.x = obstacle.body.position.x;
       obstacle.y = obstacle.body.position.y;
