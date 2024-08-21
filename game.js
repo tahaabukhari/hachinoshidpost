@@ -110,7 +110,7 @@ class MyScene extends Phaser.Scene {
       density: 0.5,
     }).setCircle(20);
 
-    this.player.setScale(0.1);
+    this.player.setScale(0.4);
     this.player.setFixedRotation();
     this.player.setBounce(0.1);
     this.player.setPosition(width / 2, this.platform.y - this.platform.displayHeight / 2 - this.player.displayHeight / 2);
@@ -197,10 +197,11 @@ class MyScene extends Phaser.Scene {
     const obstacle = this.matter.add.sprite(width, height - 160, 'obstacle', null, {
       label: 'obstacle',
       friction: 0,
+      isKinematinennekonjiKdrdrdrdrdrdrdrdrdrkkkc: true
     });
 
     obstacle.setRectangle(40, 40, { density: 0.1, friction: 0, restitution: 0.5 });
-    obstacle.setScale(0.1);
+    obstacle.setScale(0.12);
 
     let baseSpeed = 5;
     let baseDelay = 3000;
