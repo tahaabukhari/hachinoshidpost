@@ -246,8 +246,8 @@ class MyScene extends Phaser.Scene {
 
     if (this.gameOver) return;
 
-    this.background.tilePositionX += 0.5;
-    this.platform.tilePositionX += 6;
+    this.background.tilePositionX += 0.3
+    this.platform.tilePositionX += 4.5;
     
     this.obstacles = this.obstacles.filter(obstacle => {
       obstacle.x = obstacle.body.position.x;
